@@ -4,7 +4,7 @@ from flask import Flask, request, g, render_template, url_for, redirect, flash, 
 from flask_restful import Api, Resource, reqparse
 
 
-application = Flask(__name__, template_folder="app/templates",static_folder="app/static",static_url_path='')
+application = Flask(__name__, template_folder="",static_folder="",static_url_path='')
 application.config['JSON_AS_ASCII'] = False
 application.jinja_env.filters['is_int'] = lambda u: u if type(u) is int else f'{u[0]}|{u[1]}'
 
