@@ -1,4 +1,12 @@
+# -*- coding: utf-8 -*-
 import difflib
+from flask import Flask, request, g, render_template, url_for, redirect, flash, make_response, session,jsonify,abort, send_from_directory
+from flask_restful import Api, Resource, reqparse
+
+
+application = Flask(__name__, template_folder="app/templates",static_folder="app/static",static_url_path='')
+application.config['JSON_AS_ASCII'] = False
+application.jinja_env.filters['is_int'] = lambda u: u if type(u) is int else f'{u[0]}|{u[1]}'
 
 class NumberWeek(object):
 	
@@ -22,8 +30,8 @@ class NumberWeek(object):
 	SESONE = ['Зима','Весна','Лето','Зима']
 	
 	def __init__(self,day=1,month=1,year=2019,console=True):
-		year = year if year >= 2019 else 2019
-		p = int(self.is_visok(year))
+		self.year = year if year >= 2019 else 2019
+		p = int(self.is_visok())
 		try:
 			if type(month) is int:
 				if month < 1:
@@ -60,7 +68,6 @@ class NumberWeek(object):
 			self.WEEK_N = ((day//7)+1)+(delt_day)
 			self.day = day
 			self.month = month
-			self.year = year
 			if console:
 				print(f'{self.SESONE[month[1]-1]}, {day} {month[0].title()} {year} год')
 		except BaseException as e:
@@ -69,5 +76,25 @@ class NumberWeek(object):
 	def get_sesone(self): # Выдает текущий сезон года
 		return self.SESONE[self.month[1]-1]
 
-	def is_visok(self,year): # Определяет какой год високосный или нет
-		return True if ((year%4==0 and year%100!=0) or year%400==0 ) else False
+	def is_visok(self): # Определяет какой год високосный или нет
+		return True if ((self.year%4==0 and self.year%100!=0) or self.year%400==0 ) else False
+
+@application.route("/")
+def index():
+	day = request.args.get('day',default=1,type=int)
+	month = request.args.get('month',default=1,type=int)
+	year = request.args.get('year',default=2019,type=int)
+	nw = NumberWeek(day,month,year,False)
+	return render_template(
+		"index.html",
+		title = 'Тестовое задание',
+		NW = nw.WEEK_N,
+		MaxDays = nw.month[2][int(nw.is_visok())] if type(nw.month[2]) is tuple else nw.month[2],
+		day = day,
+		month = month,
+		year = year,
+		months = nw.MONTH
+	),200
+
+if __name__ == '__main__':
+	application.run(host="127.0.0.1",port=5000,debug=True)
